@@ -1,0 +1,106 @@
+.wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding-bottom: var(--space-12);
+}
+
+.halo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 160px;
+  height: 160px;
+  border-radius: var(--radius-full);
+  background: var(--sky-soft);
+  margin-bottom: var(--space-8);
+}
+
+.circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 92px;
+  height: 92px;
+  border-radius: var(--radius-full);
+  background: var(--white);
+  border: 2px solid rgba(61, 181, 255, 0.45);
+  color: var(--sky);
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-top: var(--space-2);
+}
+
+.track {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  height: 12px;
+  margin-top: var(--space-8);
+  border-radius: var(--radius-full);
+  background: var(--line);
+  overflow: hidden;
+}
+
+/* Indeterminate progress: anchored left with a Grape→Sky fill, as in the mockup */
+.fill {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 10%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(to right, var(--grape), var(--sky));
+  animation: grow 8s cubic-bezier(0.1, 0.6, 0.3, 1) forwards;
+}
+
+@keyframes grow {
+  to {
+    width: 92%;
+  }
+}
+
+.dots {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+  direction: ltr;
+}
+
+.dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--grape);
+  opacity: 0.25;
+  animation: blink 1.2s ease-in-out infinite;
+}
+
+.dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fill {
+    animation: none;
+    width: 40%;
+  }
+  .dots span {
+    animation: none;
+    opacity: 0.6;
+  }
+}

@@ -1,0 +1,29 @@
+.circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto;
+  border-radius: var(--radius-full);
+  color: var(--white);
+  font-family: var(--font-heading);
+  font-size: 32px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.tangerine {
+  background: var(--tangerine);
+  box-shadow: 0 6px 16px rgba(255, 159, 28, 0.3);
+}
+
+.mint {
+  background: var(--mint);
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.3);
+}
+
+.coral {
+  background: var(--coral);
+  box-shadow: 0 6px 16px rgba(255, 92, 97, 0.3);
+}

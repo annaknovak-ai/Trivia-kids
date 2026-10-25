@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Heebo, Rubik } from "next/font/google";
+import GameProvider from "@/components/GameProvider";
 import "./globals.css";
 
 const rubik = Rubik({
@@ -34,7 +35,9 @@ export default function RootLayout({
   return (
     <html lang="he" dir="rtl" className={`${rubik.variable} ${heebo.variable}`}>
       <body>
-        <div className="app-frame">{children}</div>
+        <GameProvider>
+          <div className="app-frame">{children}</div>
+        </GameProvider>
       </body>
     </html>
   );

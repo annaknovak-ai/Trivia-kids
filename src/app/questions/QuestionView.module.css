@@ -1,0 +1,74 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.card {
+  background: var(--white);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  border-top: 5px solid var(--sky);
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+}
+
+.label {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+  color: var(--sky);
+  margin-bottom: var(--space-2);
+}
+
+.text {
+  overflow-wrap: anywhere;
+}
+
+.options {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 56px;
+  padding: var(--space-3) 48px;
+  border-radius: var(--radius-control);
+  background: var(--grape-soft);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Letter badge on the right (RTL start), as in the mockup */
+.letter {
+  position: absolute;
+  right: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--grape);
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.optionText {
+  overflow-wrap: anywhere;
+}

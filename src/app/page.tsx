@@ -14,10 +14,18 @@ import styles from "./page.module.css";
 
 export default function HomePage() {
   const router = useRouter();
-  const { startGame } = useGame();
+  const { startGame, topicResetKey } = useGame();
   const [topic, setTopic] = useState("");
   // Disables "התחילו" after the first click to prevent double requests
   const [starting, setStarting] = useState(false);
+
+  // "בחרו נושא אחר" asks for an empty topic box; this page stays alive (hidden) between visits,
+  // so the old topic is cleared here when that request comes in
+  const [seenResetKey, setSeenResetKey] = useState(topicResetKey);
+  if (seenResetKey !== topicResetKey) {
+    setSeenResetKey(topicResetKey);
+    setTopic("");
+  }
 
   // Next.js keeps this page alive (hidden) after navigating away; re-enable the button
   // when the page is hidden so it works again when the user comes back

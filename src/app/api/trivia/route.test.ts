@@ -2,13 +2,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/openai/adapter", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/openai/adapter")>();
-  return { ...actual, requestQuestion: vi.fn() };
+  return { ...actual, requestQuestion: vi.fn(), classifyTopic: vi.fn(), moderate: vi.fn() };
 });
 
-import { ProviderError, requestQuestion } from "@/lib/openai/adapter";
+import { classifyTopic, moderate, ProviderError, requestQuestion } from "@/lib/openai/adapter";
 import { POST } from "./route";
 
 const mockedRequest = vi.mocked(requestQuestion);
+const mockedClassify = vi.mocked(classifyTopic);
+const mockedModerate = vi.mocked(moderate);
 
 const VALID = {
   question: "איזה כוכב לכת מכונה הכוכב האדום?",
@@ -36,8 +38,17 @@ async function expectUnavailable(res: Response) {
 
 beforeEach(() => {
   mockedRequest.mockReset();
+  mockedClassify.mockReset();
+  mockedModerate.mockReset();
+  mockedClassify.mockResolvedValue({ allowed: true });
+  mockedModerate.mockResolvedValue(false);
   vi.spyOn(console, "error").mockImplementation(() => {});
+  vi.spyOn(console, "info").mockImplementation(() => {});
 });
+
+function allLogs() {
+  return [...vi.mocked(console.error).mock.calls, ...vi.mocked(console.info).mock.calls].flat().join(" ");
+}
 
 describe("POST /api/trivia", () => {
   it("returns 200 with a question for a valid topic", async () => {
@@ -93,7 +104,56 @@ describe("POST /api/trivia", () => {
   it("never logs the topic", async () => {
     mockedRequest.mockRejectedValue(new ProviderError("provider"));
     await post({ topic: "דינוזאורים" });
-    const logged = vi.mocked(console.error).mock.calls.flat().join(" ");
-    expect(logged).not.toContain("דינוזאורים");
+    expect(allLogs()).not.toContain("דינוזאורים");
+  });
+});
+
+describe("topic safety", () => {
+  it("returns 422 TOPIC_NOT_ALLOWED for an unsuitable topic without generating a question", async () => {
+    mockedClassify.mockResolvedValue({ allowed: false });
+    const res = await post({ topic: "סמים" });
+    expect(res.status).toBe(422);
+    expect(await res.json()).toEqual({
+      error: { code: "TOPIC_NOT_ALLOWED", message: "הנושא הזה לא מתאים לחידון. נסו לבחור נושא אחר." },
+    });
+    expect(mockedRequest).not.toHaveBeenCalled();
+  });
+
+  it("returns 422 when moderation flags the topic", async () => {
+    mockedModerate.mockResolvedValue(true);
+    const res = await post({ topic: "משהו לא מתאים" });
+    expect(res.status).toBe(422);
+    expect(mockedRequest).not.toHaveBeenCalled();
+  });
+
+  it("returns 503 and hides the question when generated content fails moderation", async () => {
+    mockedRequest.mockResolvedValue(VALID);
+    // Topic passes, generated content is flagged
+    mockedModerate.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+    const res = await post({ topic: "חלל" });
+    expect(res.status).toBe(503);
+    expect(await res.text()).not.toContain("מאדים");
+  });
+
+  it("fails closed with 503 when moderation is unavailable", async () => {
+    mockedModerate.mockRejectedValue(new ProviderError("provider", "500"));
+    await expectUnavailable(await post({ topic: "חלל" }));
+    expect(mockedRequest).not.toHaveBeenCalled();
+  });
+});
+
+describe("logs", () => {
+  it("logs id, status and duration only — never the topic or the question", async () => {
+    mockedRequest.mockResolvedValue(VALID);
+    await post({ topic: "דינוזאורים" });
+    mockedClassify.mockResolvedValue({ allowed: false });
+    await post({ topic: "סמים" });
+
+    const logged = allLogs();
+    expect(logged).toMatch(/id=[0-9a-f-]{36} status=200 reason=ok durationMs=\d+/);
+    expect(logged).toMatch(/status=422 reason=topic_not_allowed/);
+    for (const text of ["דינוזאורים", "סמים", VALID.question, ...VALID.options]) {
+      expect(logged).not.toContain(text);
+    }
   });
 });

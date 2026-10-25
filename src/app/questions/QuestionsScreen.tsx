@@ -9,6 +9,7 @@ import { fetchQuestion } from "@/lib/apiClient";
 import ErrorView from "./ErrorView";
 import FeedbackView from "./FeedbackView";
 import LoadingView from "./LoadingView";
+import NotAllowedView from "./NotAllowedView";
 import QuestionView from "./QuestionView";
 import styles from "./page.module.css";
 
@@ -37,7 +38,7 @@ export default function QuestionsScreen() {
         dispatch(
           res.ok
             ? { type: "receiveQuestion", key: requestKey, question: res.question }
-            : { type: "receiveError", key: requestKey },
+            : { type: "receiveError", key: requestKey, code: res.code },
         );
       } catch {
         // Aborted because the screen was left — the request is sent again on return
@@ -61,13 +62,26 @@ export default function QuestionsScreen() {
 
   const showingFeedback = view.kind === "question" && view.phase === "feedback";
 
+  // Back to Home with an empty topic box (DESIGN.md 1.6א)
+  function chooseOtherTopic() {
+    dispatch({ type: "chooseOtherTopic" });
+    router.push("/");
+  }
+
+  const onBack = showingFeedback
+    ? // From the feedback screens, "back" goes Home like "החליפו נושא" (DESIGN.md 1.4)
+      () => router.push("/")
+    : view.kind === "notAllowed"
+      ? chooseOtherTopic
+      : undefined;
+
   return (
     <>
-      {/* From the feedback screens, "back" goes Home like "החליפו נושא" (DESIGN.md 1.4) */}
-      <TopBar title="חידונצ'יק" onBack={showingFeedback ? () => router.push("/") : undefined} />
+      <TopBar title="חידונצ'יק" onBack={onBack} />
       <main className={`${styles.main} ${view.kind === "question" ? "" : styles.centered}`}>
         {view.kind === "loading" && <LoadingView />}
         {view.kind === "error" && <ErrorView onRetry={() => dispatch({ type: "retry" })} />}
+        {view.kind === "notAllowed" && <NotAllowedView onChooseOther={chooseOtherTopic} />}
         {view.kind === "question" && (
           <>
             <div className={styles.scoreRow}>

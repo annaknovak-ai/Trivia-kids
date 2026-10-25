@@ -1,5 +1,5 @@
 import { ProviderError } from "@/lib/openai/adapter";
-import { generateQuestion, InvalidOutputError } from "@/lib/trivia/service";
+import { generateQuestion, InvalidOutputError, TopicNotAllowedError, UnsafeContentError } from "@/lib/trivia/service";
 import type { ApiErrorBody } from "@/lib/trivia/types";
 import { parseTriviaRequest } from "@/lib/trivia/validation";
 
@@ -7,39 +7,52 @@ const UNAVAILABLE: ApiErrorBody = {
   error: { code: "QUESTION_UNAVAILABLE", message: "לא הצלחנו ליצור שאלה כרגע. נסו שוב." },
 };
 
-// Minimal log: internal reason + duration only — never the topic or generated content
-function logFailure(reason: string, startedAt: number) {
-  console.error(`[api/trivia] failed reason=${reason} durationMs=${Date.now() - startedAt}`);
+const NOT_ALLOWED: ApiErrorBody = {
+  error: { code: "TOPIC_NOT_ALLOWED", message: "הנושא הזה לא מתאים לחידון. נסו לבחור נושא אחר." },
+};
+
+// Minimal log: request id, status, internal reason and duration — never the topic or generated content
+function logResult(id: string, status: number, reason: string, startedAt: number) {
+  const line = `[api/trivia] id=${id} status=${status} reason=${reason} durationMs=${Date.now() - startedAt}`;
+  if (status === 200) console.info(line);
+  else console.error(line);
 }
 
-function unavailable() {
-  return Response.json(UNAVAILABLE, { status: 503 });
+function failureReason(err: unknown): string {
+  if (err instanceof ProviderError) return err.message;
+  if (err instanceof InvalidOutputError) return "invalid_output";
+  if (err instanceof UnsafeContentError) return "unsafe_content";
+  return "unknown";
 }
 
 export async function POST(request: Request) {
   const startedAt = Date.now();
+  const id = crypto.randomUUID();
+
+  function unavailable(reason: string) {
+    logResult(id, 503, reason, startedAt);
+    return Response.json(UNAVAILABLE, { status: 503 });
+  }
 
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    logFailure("invalid_json", startedAt);
-    return unavailable();
+    return unavailable("invalid_json");
   }
 
   const triviaRequest = parseTriviaRequest(body);
-  if (!triviaRequest) {
-    logFailure("invalid_input", startedAt);
-    return unavailable();
-  }
+  if (!triviaRequest) return unavailable("invalid_input");
 
   try {
     const question = await generateQuestion(triviaRequest);
+    logResult(id, 200, "ok", startedAt);
     return Response.json(question);
   } catch (err) {
-    const reason =
-      err instanceof ProviderError ? err.message : err instanceof InvalidOutputError ? "invalid_output" : "unknown";
-    logFailure(reason, startedAt);
-    return unavailable();
+    if (err instanceof TopicNotAllowedError) {
+      logResult(id, 422, "topic_not_allowed", startedAt);
+      return Response.json(NOT_ALLOWED, { status: 422 });
+    }
+    return unavailable(failureReason(err));
   }
 }

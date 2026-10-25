@@ -3,6 +3,8 @@ import OpenAI from "openai";
 
 const TIMEOUT_MS = 15_000;
 const MAX_OUTPUT_TOKENS = 500;
+const MAX_CLASSIFY_TOKENS = 50;
+const MODERATION_MODEL = "omni-moderation-latest";
 
 // Structured Outputs schema; the server still validates the result (see validation.ts)
 const QUESTION_SCHEMA = {
@@ -13,6 +15,13 @@ const QUESTION_SCHEMA = {
     correctOptionIndex: { type: "integer" },
   },
   required: ["question", "options", "correctOptionIndex"],
+  additionalProperties: false,
+} as const;
+
+const TOPIC_CHECK_SCHEMA = {
+  type: "object",
+  properties: { allowed: { type: "boolean" } },
+  required: ["allowed"],
   additionalProperties: false,
 } as const;
 
@@ -33,8 +42,20 @@ function getClient(): OpenAI {
   return client;
 }
 
-// Asks the model for one question and returns the parsed (not yet validated) JSON
-export async function requestQuestion(instructions: string, input: string): Promise<unknown> {
+function toProviderError(err: unknown): ProviderError {
+  if (err instanceof OpenAI.APIConnectionTimeoutError) return new ProviderError("timeout");
+  const status = err instanceof OpenAI.APIError ? String(err.status ?? "") : "";
+  return new ProviderError("provider", status);
+}
+
+// One structured (JSON Schema) call to the configured model; returns the parsed, not yet validated, JSON
+async function requestStructured(
+  instructions: string,
+  input: string,
+  name: string,
+  schema: Record<string, unknown>,
+  maxOutputTokens: number,
+): Promise<unknown> {
   const model = process.env.OPENAI_MODEL;
   if (!model) throw new ProviderError("config", "OPENAI_MODEL is missing");
 
@@ -45,16 +66,12 @@ export async function requestQuestion(instructions: string, input: string): Prom
       instructions,
       input,
       reasoning: { effort: "none" },
-      max_output_tokens: MAX_OUTPUT_TOKENS,
+      max_output_tokens: maxOutputTokens,
       store: false,
-      text: {
-        format: { type: "json_schema", name: "trivia_question", strict: true, schema: QUESTION_SCHEMA },
-      },
+      text: { format: { type: "json_schema", name, strict: true, schema } },
     });
   } catch (err) {
-    if (err instanceof OpenAI.APIConnectionTimeoutError) throw new ProviderError("timeout");
-    const status = err instanceof OpenAI.APIError ? String(err.status ?? "") : "";
-    throw new ProviderError("provider", status);
+    throw toProviderError(err);
   }
 
   if (response.status !== "completed") throw new ProviderError("invalid_output", response.status ?? "");
@@ -69,4 +86,26 @@ export async function requestQuestion(instructions: string, input: string): Prom
   } catch {
     throw new ProviderError("invalid_output", "not JSON");
   }
+}
+
+// Asks the model for one question
+export function requestQuestion(instructions: string, input: string): Promise<unknown> {
+  return requestStructured(instructions, input, "trivia_question", QUESTION_SCHEMA, MAX_OUTPUT_TOKENS);
+}
+
+// Asks the model whether a topic suits the kids' quiz; expected shape: { allowed: boolean }
+export function classifyTopic(instructions: string, input: string): Promise<unknown> {
+  return requestStructured(instructions, input, "topic_check", TOPIC_CHECK_SCHEMA, MAX_CLASSIFY_TOKENS);
+}
+
+// OpenAI Moderation API: true if any of the texts is flagged
+export async function moderate(texts: string[]): Promise<boolean> {
+  let response;
+  try {
+    response = await getClient().moderations.create({ model: MODERATION_MODEL, input: texts });
+  } catch (err) {
+    throw toProviderError(err);
+  }
+  if (response.results.length !== texts.length) throw new ProviderError("invalid_output", "moderation");
+  return response.results.some((r) => r.flagged);
 }

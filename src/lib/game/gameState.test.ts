@@ -45,7 +45,7 @@ describe("score", () => {
   it("ignores choices while loading or on error", () => {
     const loading = gameReducer(initialGame, { type: "start", topic: "" });
     expect(gameReducer(loading, { type: "select", index: 0 })).toBe(loading);
-    const error = gameReducer(loading, { type: "receiveError", key: loading.requestKey });
+    const error = gameReducer(loading, { type: "receiveError", key: loading.requestKey, code: "QUESTION_UNAVAILABLE" });
     expect(gameReducer(error, { type: "select", index: 0 })).toBe(error);
   });
 
@@ -69,11 +69,35 @@ describe("requests", () => {
     const first = gameReducer(initialGame, { type: "start", topic: "חלל" });
     const second = gameReducer(first, { type: "retry" });
     expect(gameReducer(second, { type: "receiveQuestion", key: first.requestKey, question: QUESTION })).toBe(second);
-    expect(gameReducer(second, { type: "receiveError", key: first.requestKey })).toBe(second);
+    expect(
+      gameReducer(second, { type: "receiveError", key: first.requestKey, code: "QUESTION_UNAVAILABLE" }),
+    ).toBe(second);
   });
 
   it("remembers received questions for the next request", () => {
     expect(withQuestion().recentQuestions).toEqual([QUESTION.question]);
+  });
+});
+
+describe("unsuitable topic", () => {
+  it("shows the not-allowed view for TOPIC_NOT_ALLOWED and the error view otherwise", () => {
+    const loading = gameReducer(initialGame, { type: "start", topic: "סמים" });
+    const key = loading.requestKey;
+    expect(gameReducer(loading, { type: "receiveError", key, code: "TOPIC_NOT_ALLOWED" }).view).toEqual({
+      kind: "notAllowed",
+    });
+    expect(gameReducer(loading, { type: "receiveError", key, code: "QUESTION_UNAVAILABLE" }).view).toEqual({
+      kind: "error",
+    });
+  });
+
+  it("choosing another topic asks Home to clear the topic box and keeps the score", () => {
+    let s = gameReducer(withQuestion(), { type: "select", index: 1 });
+    s = gameReducer(s, { type: "start", topic: "סמים" });
+    s = gameReducer(s, { type: "receiveError", key: s.requestKey, code: "TOPIC_NOT_ALLOWED" });
+    const after = gameReducer(s, { type: "chooseOtherTopic" });
+    expect(after.topicResetKey).toBe(s.topicResetKey + 1);
+    expect(after.score).toBe(1);
   });
 });
 

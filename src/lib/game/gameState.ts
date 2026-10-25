@@ -1,5 +1,5 @@
 // In-memory game state (ARCHITECTURE.md 3.3) as a pure reducer — no React, never persisted
-import type { TriviaQuestion } from "@/lib/trivia/types";
+import type { ApiErrorCode, TriviaQuestion } from "@/lib/trivia/types";
 import { MAX_RECENT_QUESTIONS } from "@/lib/trivia/validation";
 
 // "reveal" is the short (~1s) correct/wrong marking on the question screen before the feedback screen
@@ -8,7 +8,9 @@ export type AnswerPhase = "choosing" | "reveal" | "feedback";
 export type View =
   | { kind: "loading" }
   | { kind: "question"; question: TriviaQuestion; selected: number | null; phase: AnswerPhase }
-  | { kind: "error" };
+  | { kind: "error" }
+  // The topic was rejected as unsuitable for kids (DESIGN.md 1.6א)
+  | { kind: "notAllowed" };
 
 export type GameData = {
   // True once the first question was requested (via "התחילו" or the questions tab)
@@ -19,6 +21,8 @@ export type GameData = {
   view: View;
   score: number;
   recentQuestions: string[];
+  // Increases when the Home topic box should be cleared ("בחרו נושא אחר")
+  topicResetKey: number;
 };
 
 export type GameAction =
@@ -26,9 +30,10 @@ export type GameAction =
   | { type: "next" }
   | { type: "retry" }
   | { type: "receiveQuestion"; key: number; question: TriviaQuestion }
-  | { type: "receiveError"; key: number }
+  | { type: "receiveError"; key: number; code: ApiErrorCode }
   | { type: "select"; index: number }
-  | { type: "showFeedback" };
+  | { type: "showFeedback" }
+  | { type: "chooseOtherTopic" };
 
 export const initialGame: GameData = {
   started: false,
@@ -37,6 +42,7 @@ export const initialGame: GameData = {
   view: { kind: "loading" },
   score: 0,
   recentQuestions: [],
+  topicResetKey: 0,
 };
 
 export function addRecentQuestion(list: string[], question: string): string[] {
@@ -71,7 +77,7 @@ export function gameReducer(state: GameData, action: GameAction): GameData {
 
     case "receiveError":
       if (action.key !== state.requestKey || state.view.kind !== "loading") return state;
-      return { ...state, view: { kind: "error" } };
+      return { ...state, view: { kind: action.code === "TOPIC_NOT_ALLOWED" ? "notAllowed" : "error" } };
 
     case "select": {
       const view = state.view;
@@ -88,5 +94,8 @@ export function gameReducer(state: GameData, action: GameAction): GameData {
     case "showFeedback":
       if (state.view.kind !== "question" || state.view.phase !== "reveal") return state;
       return { ...state, view: { ...state.view, phase: "feedback" } };
+
+    case "chooseOtherTopic":
+      return { ...state, topicResetKey: state.topicResetKey + 1 };
   }
 }

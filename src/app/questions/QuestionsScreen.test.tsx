@@ -123,3 +123,29 @@ describe("after the feedback", () => {
     expect(screen.getByRole("link", { name: /החליפו נושא/ }).getAttribute("href")).toBe("/");
   });
 });
+
+describe("unsuitable topic", () => {
+  it("shows the friendly message and no question", async () => {
+    mockedFetch.mockResolvedValue({ ok: false, code: "TOPIC_NOT_ALLOWED" });
+    renderScreen();
+
+    expect(await screen.findByText("בואו נבחר נושא אחר")).toBeTruthy();
+    expect(screen.getByText("הנושא הזה לא מתאים לחידון. נסו לבחור נושא אחר.")).toBeTruthy();
+    expect(screen.queryByText("שאלה")).toBeNull();
+    expect(screen.queryByText(/ניקוד:/)).toBeNull();
+    expect(screen.queryByText("אופס!")).toBeNull();
+  });
+
+  it("'בחרו נושא אחר' and the back button go Home", async () => {
+    const user = userEvent.setup();
+    mockedFetch.mockResolvedValue({ ok: false, code: "TOPIC_NOT_ALLOWED" });
+    renderScreen();
+
+    await user.click(await screen.findByRole("button", { name: /בחרו נושא אחר/ }));
+    expect(push).toHaveBeenCalledWith("/");
+
+    push.mockReset();
+    await user.click(screen.getByRole("button", { name: "חזרה" }));
+    expect(push).toHaveBeenCalledWith("/");
+  });
+});

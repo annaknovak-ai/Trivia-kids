@@ -106,6 +106,22 @@ export function RetryIcon(props: IconProps) {
   );
 }
 
+export function CheckIcon(props: IconProps) {
+  return (
+    <Outline {...props}>
+      <path d="m5 12.5 4.5 4.5L19 7.5" />
+    </Outline>
+  );
+}
+
+export function CloseIcon(props: IconProps) {
+  return (
+    <Outline {...props}>
+      <path d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5" />
+    </Outline>
+  );
+}
+
 export function BrainIcon(props: IconProps) {
   return (
     <Outline {...props}>

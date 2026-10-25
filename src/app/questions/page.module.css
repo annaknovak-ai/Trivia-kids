@@ -8,3 +8,10 @@
 .centered {
   justify-content: center;
 }
+
+/* Score chip sits on the left (RTL end) under the top bar */
+.scoreRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-4);
+}

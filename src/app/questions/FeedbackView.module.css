@@ -1,0 +1,90 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-8) var(--space-6);
+  border-radius: var(--radius-card);
+  border: 2px solid;
+}
+
+.correct {
+  background: var(--mint-soft);
+  border-color: var(--mint-border);
+}
+
+.wrong {
+  background: var(--coral-soft);
+  border-color: var(--coral-border);
+}
+
+.title {
+  margin-top: var(--space-6);
+}
+
+.correct .title {
+  color: var(--mint-dark);
+}
+
+.wrong .title {
+  color: var(--coral-dark);
+}
+
+.text {
+  color: var(--muted);
+  margin-top: var(--space-1);
+}
+
+/* "+1 נקודה" label */
+.points {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: var(--space-4);
+  padding: 6px var(--space-3);
+  border-radius: var(--radius-chip);
+  background: var(--white);
+  border: 1.5px solid var(--mint-border);
+  color: var(--mint-dark);
+}
+
+.star {
+  color: var(--sunny);
+}
+
+/* Correct answer box on the wrong-answer card */
+.answer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 52px;
+  margin-top: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-control);
+  background: var(--white);
+  border: 2px solid var(--mint);
+  color: var(--mint-dark);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.answer svg {
+  flex-shrink: 0;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}

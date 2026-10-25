@@ -4,10 +4,14 @@ import { useRouter } from "next/navigation";
 import { ChevronLeftIcon } from "./icons";
 import styles from "./TopBar.module.css";
 
-export default function TopBar({ title }: { title: string }) {
+export default function TopBar({ title, onBack }: { title: string; onBack?: () => void }) {
   const router = useRouter();
 
   function goBack() {
+    if (onBack) {
+      onBack();
+      return;
+    }
     // Go back within the app if there is history, otherwise go Home
     if (window.history.length > 1) {
       router.back();

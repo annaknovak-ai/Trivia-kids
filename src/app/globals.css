@@ -12,8 +12,12 @@
   /* Feedback */
   --mint: #22c55e;
   --mint-soft: #e3f9ec;
+  --mint-dark: #15803d; /* derived: "כל הכבוד!" title, correct answer text */
+  --mint-border: #a7e9c0; /* derived: correct card border */
   --coral: #ff5c61;
   --coral-soft: #ffe4e5; /* derived: wrong card */
+  --coral-dark: #dc2f35; /* derived: "לא נכון" title */
+  --coral-border: #ffb3b5; /* derived: wrong card border */
   --tangerine: #ff9f1c;
 
   /* Neutrals */

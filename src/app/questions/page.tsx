@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import TopBar from "@/components/TopBar";
 import QuestionsScreen from "./QuestionsScreen";
 
 export const metadata: Metadata = {
@@ -7,10 +6,5 @@ export const metadata: Metadata = {
 };
 
 export default function QuestionsPage() {
-  return (
-    <>
-      <TopBar title="חידונצ'יק" />
-      <QuestionsScreen />
-    </>
-  );
+  return <QuestionsScreen />;
 }

@@ -462,11 +462,11 @@ Storage, Cookies או Database, בהתאם לדרישה שלא לשמור מיד
   משתנה                   Development             Production
   ----------------------- ----------------------- -----------------------
   `OPENAI_API_KEY`        מפתח API ייעודי לפיתוח, משתנה סודי ב־Vercel
-                          בקובץ `.env.local`      בלבד
+                          בקובץ `.env`            בלבד
                           שאינו נשמר ב־Git        
 
-  `OPENAI_MODEL`          `gpt-5` לאחר אימות      `gpt-5` לאחר אימות
-                          זמינות                  זמינות
+  `OPENAI_MODEL`          `gpt-6-luna` (אושר,     `gpt-6-luna` (אושר,
+                          ראו ADR-2)              ראו ADR-2)
 
   `NODE_ENV`              `development`           `production`
 
@@ -610,3 +610,21 @@ Vercel ובנתוני השימוש והחיוב של OpenAI לצורך איתו�
 **החלטה:** `GameProvider` (React Context ב־`src/components/GameProvider.tsx`) עוטף את האפליקציה ושומר בזיכרון את הנושא ואת `requestId`, מספר שעולה בכל לחיצה על `התחילו`. הנושא לא עובר בכתובת ה־URL. ב־Milestone 3 ה־Context יורחב לשאר שדות מצב המשחק. מאחר ש־`cacheComponents` פעיל, Next.js משאיר מסכים שביקרו בהם "מוסתרים" עם ה־state שלהם (React `<Activity>`). לכן מסך השאלות מתייג כל תוצאה בבקשה שהיא עונה לה (`requestId` + מספר ניסיון), ויוצר שאלה חדשה רק כשהבקשה השתנתה. כדי שבפיתוח (React Strict Mode) לא יישלחו שתי בקשות, תחילת הבקשה נדחית ל־`setTimeout(0)` ומבוטלת ביציאה מהמסך.
 
 **השלכות:** אין חשיפה של מה שהילד הקליד בכתובת, ואין שמירה בדפדפן. חזרה למסך השאלות בלי `התחילו` חדש מציגה את התוצאה האחרונה, בהתאם להתנהגות הלשונית `שאלות` שתושלם ב־Milestone 3. טעינה מחדש של `/questions` מאפסת את הנושא ומביאה שאלה כללית.
+
+> **עדכון (Milestone 3):** כל מצב המשחק עבר ל־Context — ראו ADR-5.
+
+### ADR-5: מצב המשחק כ־Reducer טהור ב־Context
+
+**הקשר:** Milestone 3 מוסיף בחירת תשובה, סימון קצר, משוב, ניקוד ו־`recentQuestions`. הלשונית `שאלות` צריכה להחזיר בדיוק לשאלה או למשוב האחרונים, גם אם Next.js פרק את מסך השאלות. הלוגיקה (בחירה ראשונה בלבד, ניקוד פעם אחת) צריכה בדיקות Unit.
+
+**החלטה:** כל מצב המשחק (סעיף 3.3) מנוהל ב־`src/lib/game/gameState.ts` כ־reducer טהור (`gameReducer`), בלי React. `GameProvider` מחזיק אותו ב־`useReducer`, בזיכרון בלבד. במקום `requestId` + מספר ניסיון (ADR-4), יש `requestKey` אחד שעולה בכל בקשה (`התחילו`, `שאלה הבאה`, `נסו שוב`), ותוצאה של בקשה ישנה נזרקת. מצב השאלה כולל `phase`: `choosing` → `reveal` (סימון של שנייה, `REVEAL_MS`) → `feedback`. מסך השאלות שולח בקשה רק כשהמצב `loading`, ומפעיל את טיימר הסימון רק במצב `reveal`. `answered` ו־`feedback` נגזרים מ־`selected` ומהתשובה הנכונה. `recentQuestions` שומר עד 10 שאלות אחרונות, בלי כפילויות.
+
+**השלכות:** מעבר בין מסכים לא מאבד את מצב המשחק, ויציאה באמצע הסימון ממשיכה ממנו בחזרה. הלוגיקה נבדקת ב־Unit Tests בסביבת node.
+
+### ADR-6: UI Tests עם Testing Library ו־jsdom
+
+**הקשר:** Milestone 3 דורש UI Tests (בחירה אחת בלבד, משוב, חשיפת התשובה הנכונה, ניקוד). עד עכשיו כל הבדיקות רצו ב־node, בלי דפדפן מדומה.
+
+**החלטה:** נוספו devDependencies `@testing-library/react`, `@testing-library/user-event` ו־`jsdom`. קובצי UI Tests הם `*.test.tsx` ומסומנים בהערה `// @vitest-environment jsdom`; שאר הבדיקות נשארות ב־node. `fetchQuestion`, `next/navigation` ו־`next/link` מוחלפים ב־mock. לא נוספה ספריית matchers (jest-dom); הבדיקות משתמשות ב־matchers הרגילים של Vitest.
+
+**השלכות:** אין קריאות אמיתיות ל־OpenAI בבדיקות. בדיקות UI איטיות מעט יותר (ממתינות לסימון של שנייה בזמן אמיתי).

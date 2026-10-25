@@ -170,7 +170,7 @@
 
 ---
 
-## Milestone 5 — PWA ופריסה ל־Production
+## Milestone 5 — PWA ופריסה ל־Production ✅
 
 **שם ומטרה:** לאפשר התקנה של האפליקציה כ־PWA, להקשיח את נקודת ה־API לקראת פתיחה ציבורית, ולפרסם את האתר ב־Production.
 

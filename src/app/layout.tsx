@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Heebo, Rubik } from "next/font/google";
 import GameProvider from "@/components/GameProvider";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import "./globals.css";
 
 const rubik = Rubik({
@@ -38,6 +39,7 @@ export default function RootLayout({
         <GameProvider>
           <div className="app-frame">{children}</div>
         </GameProvider>
+        <ServiceWorkerRegister />
       </body>
     </html>
   );

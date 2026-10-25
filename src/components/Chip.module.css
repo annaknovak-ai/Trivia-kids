@@ -1,0 +1,29 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 6px var(--space-3);
+  border-radius: var(--radius-chip);
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+}
+
+.icon {
+  display: inline-flex;
+}
+
+.grape {
+  background: var(--grape-soft);
+  color: var(--grape);
+}
+
+.sunny {
+  background: var(--sunny-soft);
+  color: var(--ink);
+}
+
+.sunny .icon {
+  color: var(--sunny);
+}

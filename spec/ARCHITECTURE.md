@@ -576,3 +576,13 @@ Vercel ובנתוני השימוש והחיוב של OpenAI לצורך איתו�
 10. **OpenAI API --- Moderation:**\
     https://developers.openai.com/api/docs/guides/moderation\
     סיווג תוכן מזיק והגבלות השימוש במנגנון Moderation.
+
+## החלטות מרכזיות (ADRs)
+
+### ADR-1: עיצוב ב־CSS Modules ואייקונים כ־SVG ידני
+
+**הקשר:** ה־Style Guide מגדיר שפה עיצובית מדויקת: צבעים, גדלים, אייקונים בעובי קו 1.9 עם וריאנט מלא ללשונית הפעילה, ואיורי נושאים שטוחים. ARCHITECTURE מאפשר CSS רגיל או CSS Modules, בלי ספריית UI גדולה.
+
+**החלטה:** ה־Design tokens מוגדרים כ־CSS variables ב־`src/app/globals.css`, וכל רכיב מעוצב ב־CSS Module משלו. האייקונים (`src/components/icons.tsx`) ואיורי הנושאים (`src/components/TopicIllustrations.tsx`) נכתבים כ־SVG ידני, בלי ספריית אייקונים. הגופנים Rubik ו־Heebo נטענים דרך `next/font/google`.
+
+**השלכות:** אין תלויות נוספות, והמראה תואם ל־Style Guide בדיוק. אייקון חדש מוסיפים ידנית ל־`icons.tsx`. צבעים שאין להם HEX ב־Style Guide (Grape Dark, Sunny Soft, Coral Soft, Sky Soft, Stone) נגזרו כגוונים של צבעי הבסיס ומוגדרים במקום אחד ב־`globals.css`.

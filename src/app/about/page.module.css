@@ -1,0 +1,70 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-8) var(--space-4) calc(var(--tab-bar-height) + var(--space-6));
+}
+
+.hero {
+  text-align: center;
+}
+
+.appName {
+  color: var(--grape);
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-top: var(--space-1);
+}
+
+.divider {
+  border: none;
+  border-top: 1.5px solid var(--line);
+  margin: 0 var(--space-4);
+}
+
+.centered {
+  text-align: center;
+}
+
+.howTitle {
+  margin-bottom: var(--space-2);
+}
+
+.howList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.howList li {
+  position: relative;
+  padding-right: var(--space-4);
+}
+
+/* Sunny bullet (Style Guide: Sunny for bullets) */
+.howList li::before {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 9px;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  background: var(--sunny);
+}
+
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  text-align: center;
+  color: var(--muted);
+}
+
+.version {
+  display: flex;
+  justify-content: center;
+}

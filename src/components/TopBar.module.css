@@ -1,0 +1,36 @@
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--top-bar-height);
+  padding: 0 var(--space-4);
+  background: var(--white);
+  border-bottom: 1.5px solid var(--line);
+}
+
+.title {
+  text-align: center;
+}
+
+/* Back button sits on the left side (DESIGN.md 2.5) */
+.back {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-control);
+  background: var(--grape-soft);
+  color: var(--grape);
+}
+
+.back:active {
+  background: var(--line);
+}

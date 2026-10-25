@@ -1,0 +1,26 @@
+.input {
+  width: 100%;
+  height: 52px;
+  padding: 0 var(--space-4);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--white);
+  font-family: var(--font-body);
+  font-size: 16px; /* 16px prevents iOS zoom on focus */
+  line-height: 24px;
+  color: var(--ink);
+  text-align: right;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.input::placeholder {
+  color: var(--stone);
+}
+
+.input:focus,
+.input:focus-visible {
+  outline: none;
+  border: 2px solid var(--grape);
+  padding: 0 calc(var(--space-4) - 0.5px);
+  box-shadow: 0 0 0 4px rgba(108, 76, 245, 0.15);
+}
